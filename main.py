@@ -4,11 +4,17 @@ import win32gui
 
 
 def program_tracker():
-    while True:
-        current_program = win32gui.GetForegroundWindow()
-        current_program_title = win32gui.GetWindowText(current_program)
-        print(current_program_title)
-        time.sleep(1)
+    current_program = win32gui.GetForegroundWindow()
+    current_program_title = win32gui.GetWindowText(current_program)
+    print(current_program_title)
+    return current_program_title
+
+
+def update_program_name():
+    active_program = program_tracker()
+    active_program_entry.delete(0, tk.END)
+    active_program_entry.insert(0, active_program)
+    window.after(1000, update_program_name)
 
 
 window = tk.Tk()
@@ -43,10 +49,12 @@ end_log_button.pack(side=tk.RIGHT, ipadx=10)
 frm_active_program = tk.Frame(relief=tk.SUNKEN, width=3)  # Frame for tracking active program
 frm_active_program.pack(fill=tk.X, ipadx=10, ipady=10)
 
+active_program_label = tk.Label(master=frm_active_program, text=f'Active Program:')
+active_program_label.pack(side=tk.LEFT)
 active_program_entry = tk.Entry(master=frm_active_program, width=20)  # Entry for active program (shows which program
 # is currently active
 active_program_entry.pack(side=tk.LEFT)
 
 if __name__ == '__main__':
+    update_program_name()
     window.mainloop()
-    program_tracker()
