@@ -16,8 +16,14 @@ def update_program_name():  # function for updating the name in the TkInter wind
     active_program_entry.insert(0, active_program)  # reinsert the name of the program
     window.after(1000, update_program_name)  # repeat the function and sending it to the Tk.Inter window every second
 
+
+
 tracker_active = False # global variable for the tracking mechanism, set to False initially
 start_time = 0 #  GLOBAL variable, used as a placeholder for further modification within function
+time_display = "0:00" # GLOBAL variable for resetting the time entry
+time_after_id = None # GLOBAL variable for saving .after id
+elapsed_time_global = 0
+
 def start_time_tracking():
     global tracker_active, start_time
     tracker_active = True # Set tracking flag to active
@@ -25,24 +31,48 @@ def start_time_tracking():
     time_tracker() # Begin the timer loop
 
 
-def time_tracker():  # function for tracking time
-    current_time = time.time() # Get current time
-    elapsed_time = current_time - start_time # Calculate how much time has passed since start
 
-    minutes = int(elapsed_time // 60) # Convert elapsed seconds to minutes
-    seconds = int(elapsed_time % 60) # Get remaining seconds after removing minutes
+def time_tracker():  # function for tracking time
+    global time_display, time_after_id, elapsed_time_global
+    current_time = time.time() # Get current time
+    elapsed_time_global = current_time - start_time # Calculate how much time has passed since start
+
+    minutes = int(elapsed_time_global // 60) # Convert elapsed seconds to minutes
+    seconds = int(elapsed_time_global % 60) # Get remaining seconds after removing minutes
 
     time_display = f'{minutes}:{seconds:02d}' # time_display = f'{minutes:02d}:{seconds:02d}' == show time as 00:00
 
     time_entry.delete(0, tk.END) # Clear the time display entry box
     time_entry.insert(0, time_display) # Insert the formatted time at the beginning
     if tracker_active: # If tracking is still active
-        window.after(1000, time_tracker) # Schedule this function to run again in 1 second
+        time_after_id = window.after(1000, time_tracker) # Schedule this function to run again in 1 second
         return current_time # Return current time value
 
+
+def pause_time():
+    global tracker_active, time_after_id, elapsed_time_global, start_time
+    tracker_active = False
+    elapsed_time_global = time.time() - start_time
+    window.after_cancel(time_after_id)
+
+def resume_time():
+    global tracker_active, start_time, elapsed_time_global
+    tracker_active = True
+    start_time = time.time() - elapsed_time_global
+    time_tracker()
+
+
+
 def stop_tracker():
-    global tracker_active # Declare global variable to modify it
+    global tracker_active, time_display, time_after_id # Declare global variable to modify it
     tracker_active = False # Set tracking flag to inactive (stops the timer)
+    time_display = "0:00" # Reset the time in the entry to be "0:00
+    if time_after_id:
+        window.after_cancel(time_after_id) # Used global variable for stopping the time_tracker before next iteration
+        time_entry.delete(0, tk.END)
+        time_entry.insert(0, time_display)
+
+
 
 
 
@@ -74,13 +104,21 @@ last_app_label.grid(row=2, column=0, sticky='e')
 last_app_entry.grid(row=2, column=1)
 
 buttons = ['Start log',
-           'End log']
+           'End log',
+           'Pause log',
+           'Resume log']
 
 frm_buttons = tk.Frame()  # Frame for buttons
 frm_buttons.pack(fill=tk.X, ipadx=10, ipady=10)
 
 start_log_button = tk.Button(master=frm_buttons, text=buttons[0], command=start_time_tracking)  # button for start logging time
 start_log_button.pack(side=tk.LEFT, ipadx=10)
+
+pause_log_button = tk.Button(master=frm_buttons, text=buttons[2], command=pause_time) # pause the time
+pause_log_button.pack(side=tk.LEFT, ipadx=10, padx=15)
+
+resume_log_button = tk.Button(master=frm_buttons, text=buttons[3], command=resume_time) # resume the count
+resume_log_button.pack(side=tk.LEFT, ipadx=10, padx=15)
 
 end_log_button = tk.Button(master=frm_buttons, text=buttons[1], command=stop_tracker)  # button for end logging time
 end_log_button.pack(side=tk.RIGHT, ipadx=10)
