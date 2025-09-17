@@ -13,3 +13,5 @@ Added a point functionality, where every minute it will add 0.5 points to the po
     `points_entry.insert(0, points)  
     `points = points + 0.5`
 Since i already have the **pause and resume** logic tied to this function as well, the points are pausing and resuming automatically, only thing needed was to modify the stop function to delete and add the points again from 0. 
+
+Also i have added a function to create a CSV files, and/or append existing data to it based on the last session. It has 3 columns `Time Elapsed, Total Points and Last App`, all of these are in a dictionary as keys, and the values are the respective values. However, now it tracks every program that is currently active, so that means whenever i press stop, i have to go the program itself, which will track itself, thus the last program tracked will always be the one i am writing. For the next session i have to implement a ignore check so that the app will be tracking itself, but other programs that are currently active.
