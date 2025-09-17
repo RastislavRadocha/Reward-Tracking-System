@@ -5,3 +5,11 @@ Before i had create simple UI from [[Reward system#^8f0338|first subpoint of pha
 These basic logical steps must be present within the program and the function itself. They have been implemented now and any weird glitches are fixed, at least for the stop time function. Still a lot to do in phase one, and with the functions themselves.
 
 Added also functioning `pause_time(), resume_time() and stop_tracker() functions` which was surprisingly not as hard as i have thought.
+
+# Progress 2
+
+Added a point functionality, where every minute it will add 0.5 points to the points entry. It was done by using a global variable `points = 0.5` of type float, then i added a simple check to the `time_tracker()` function : `if int(elapsed_time_global) % 5 == 0 and elapsed_time_global > 0:  
+    `points_entry.delete(0, tk.END)  
+    `points_entry.insert(0, points)  
+    `points = points + 0.5`
+Since i already have the **pause and resume** logic tied to this function as well, the points are pausing and resuming automatically, only thing needed was to modify the stop function to delete and add the points again from 0. 
