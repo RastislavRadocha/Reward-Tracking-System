@@ -1,3 +1,5 @@
+import csv
+import os.path
 import tkinter as tk
 import time
 import win32gui
@@ -25,6 +27,27 @@ time_after_id = None # GLOBAL variable for saving .after id
 elapsed_time_global = 0
 points: float = 0.0
 last_program = ""
+
+""" Function for creating and/or appending new data into csv. file """
+def create_csv():
+    csv_columns = {'Time Elapsed': elapsed_time_global,
+                   'Total Points': points,
+                   'Last App': last_program}
+
+    if not os.path.exists('Study Logs'):
+        os.makedirs('Study Logs')
+    if os.path.exists('Study Logs/tracking_log.csv'):
+        with open('Study Logs/tracking_log.csv', mode='a') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=list(csv_columns.keys()))
+            writer.writerow(csv_columns)
+    else:
+        with open('Study Logs/tracking_log.csv', mode='w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=list(csv_columns.keys()))
+            writer.writeheader()
+            writer.writerow(csv_columns)
+
+
+
 
 def start_time_tracking():
     global tracker_active, start_time
@@ -71,6 +94,8 @@ def resume_time():
 
 def stop_tracker():
     global tracker_active, time_display, time_after_id, points, last_program # Declare global variable to modify it
+    last_program = program_tracker()
+    create_csv()
     tracker_active = False # Set tracking flag to inactive (stops the timer)
     time_display = "0:00" # Reset the time in the entry to be "0:00
     points = 0.0
@@ -86,9 +111,6 @@ def stop_tracker():
     last_app_entry.insert(0, last_program)
 
 
-
-
-
 window = tk.Tk() # Create the main window
 window.title('Reward System') # Set the window title to 'Reward System'
 
@@ -99,6 +121,7 @@ labels = ['Time Elapsed:',
           'Total Points:',
           'Last App:',
           ]
+
 
 # for idx, text in enumerate(labels):  #loop for the labels variable
 time_label = tk.Label(master=frm_form, text=labels[0])  #Creating the labels from labels variable
