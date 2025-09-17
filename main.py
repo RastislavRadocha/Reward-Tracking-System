@@ -23,6 +23,8 @@ start_time = 0 #  GLOBAL variable, used as a placeholder for further modificatio
 time_display = "0:00" # GLOBAL variable for resetting the time entry
 time_after_id = None # GLOBAL variable for saving .after id
 elapsed_time_global = 0
+points: float = 0.0
+last_program = ""
 
 def start_time_tracking():
     global tracker_active, start_time
@@ -33,7 +35,7 @@ def start_time_tracking():
 
 
 def time_tracker():  # function for tracking time
-    global time_display, time_after_id, elapsed_time_global
+    global time_display, time_after_id, elapsed_time_global, points
     current_time = time.time() # Get current time
     elapsed_time_global = current_time - start_time # Calculate how much time has passed since start
 
@@ -46,6 +48,10 @@ def time_tracker():  # function for tracking time
     time_entry.insert(0, time_display) # Insert the formatted time at the beginning
     if tracker_active: # If tracking is still active
         time_after_id = window.after(1000, time_tracker) # Schedule this function to run again in 1 second
+        if int(elapsed_time_global) % 5 == 0 and elapsed_time_global > 0:
+            points_entry.delete(0, tk.END)
+            points_entry.insert(0, points)
+            points = points + 0.5
         return current_time # Return current time value
 
 
@@ -64,13 +70,20 @@ def resume_time():
 
 
 def stop_tracker():
-    global tracker_active, time_display, time_after_id # Declare global variable to modify it
+    global tracker_active, time_display, time_after_id, points, last_program # Declare global variable to modify it
     tracker_active = False # Set tracking flag to inactive (stops the timer)
     time_display = "0:00" # Reset the time in the entry to be "0:00
+    points = 0.0
     if time_after_id:
         window.after_cancel(time_after_id) # Used global variable for stopping the time_tracker before next iteration
         time_entry.delete(0, tk.END)
         time_entry.insert(0, time_display)
+        points_entry.delete(0, tk.END)
+        points_entry.insert(0, points)
+
+    last_program = program_tracker()
+    last_app_entry.delete(0, tk.END)
+    last_app_entry.insert(0, last_program)
 
 
 
