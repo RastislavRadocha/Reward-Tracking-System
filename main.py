@@ -43,10 +43,13 @@ def create_csv():
     elapsed_time_converted = int(elapsed_time_global) # converted floats to integers so that in CSV file it will look
                                                     # clean
     points_rounded = points / 10
+
+    total_points = total_points_sum_csv() + points_rounded
+
     csv_columns = {'Time Elapsed': elapsed_time_converted,
-                   'Total Points': points_rounded,
+                   'Points per session': points_rounded,
                    'Last App': last_program,
-                   }
+                   'Total points': total_points}
 
     if not os.path.exists('Study Logs'):
         os.makedirs('Study Logs')
@@ -60,7 +63,21 @@ def create_csv():
             writer.writeheader()
             writer.writerow(csv_columns)
 
+def total_points_sum_csv():
+    total = 0.0
 
+    if not os.path.exists('Study Logs/tracking_log.csv'):
+        return 0.0
+    with open('Study Logs/tracking_log.csv', mode='r', newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+
+        for row in reader:
+            try:
+                total += float(row['Points per session'])
+            except(KeyError, ValueError):
+                continue
+
+    return total
 
 
 def start_time_tracking():
@@ -111,12 +128,13 @@ def resume_time():
 
 
 def stop_tracker():
-    global tracker_active, time_display, time_after_id, points, last_program # Declare global variable to modify it
+    global tracker_active, time_display, time_after_id, points, last_program, last_block # Declare global variable to modify it
     last_program = program_tracker()
     create_csv()
     tracker_active = False # Set tracking flag to inactive (stops the timer)
     time_display = "0:00" # Reset the time in the entry to be "0:00
     points = 0
+    last_block = 0
     if time_after_id:
         window.after_cancel(time_after_id) # Used global variable for stopping the time_tracker before next iteration
         time_entry.delete(0, tk.END)
@@ -127,6 +145,7 @@ def stop_tracker():
     last_program = program_tracker()
     last_app_entry.delete(0, tk.END)
     last_app_entry.insert(0, last_program)
+
 
 
 window = tk.Tk() # Create the main window
