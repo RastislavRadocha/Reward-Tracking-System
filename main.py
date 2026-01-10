@@ -145,7 +145,9 @@ def stop_tracker():
     last_program = program_tracker()
     last_app_entry.delete(0, tk.END)
     last_app_entry.insert(0, last_program)
-
+    total_points_entry = total_points_sum_csv()
+    total_points_label_entry.delete(0, tk.END)
+    total_points_label_entry.insert(0, total_points_entry)
 
 
 window = tk.Tk() # Create the main window
