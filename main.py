@@ -2,14 +2,23 @@ import csv
 import os.path
 import tkinter as tk
 import time
-import win32gui
+import pywinctl as pwc
+# import win32gui
+
 
 
 def program_tracker():
-    current_program = win32gui.GetForegroundWindow()  # Gets the ID number of the window that is on top
-    current_program_title = win32gui.GetWindowText(current_program)  # Gets the name of the window/program/website page
+    current_program = pwc.getActiveWindow()
+    if current_program is None:
+        return ""
+
+    current_program_title = current_program.title or ""  # Gets the window title
+    # print(current_program_title)  # Testing print
+    return current_program_title  # Return the title
+    # current_program = win32gui.GetForegroundWindow()  # Gets the ID number of the window that is on top
+    # current_program_title = win32gui.GetWindowText(current_program)  # Gets the name of the window/program/website page
     # print(current_program_title)  # Prints the title to console for testing purposes
-    return current_program_title  # returns the variable to actually use it
+    # return current_program_title  # returns the variable to actually use it
 
 
 def update_program_name():  # function for updating the name in the TkInter window
@@ -25,14 +34,19 @@ start_time = 0 #  GLOBAL variable, used as a placeholder for further modificatio
 time_display = "0:00" # GLOBAL variable for resetting the time entry
 time_after_id = None # GLOBAL variable for saving .after id
 elapsed_time_global = 0
-points: float = 0.0
+points: int = 0
+last_block = 0
 last_program = ""
 
 """ Function for creating and/or appending new data into csv. file """
 def create_csv():
-    csv_columns = {'Time Elapsed': elapsed_time_global,
-                   'Total Points': points,
-                   'Last App': last_program}
+    elapsed_time_converted = int(elapsed_time_global) # converted floats to integers so that in CSV file it will look
+                                                    # clean
+    points_rounded = points / 10
+    csv_columns = {'Time Elapsed': elapsed_time_converted,
+                   'Total Points': points_rounded,
+                   'Last App': last_program,
+                   }
 
     if not os.path.exists('Study Logs'):
         os.makedirs('Study Logs')
@@ -58,7 +72,7 @@ def start_time_tracking():
 
 
 def time_tracker():  # function for tracking time
-    global time_display, time_after_id, elapsed_time_global, points
+    global time_display, time_after_id, elapsed_time_global, points, last_block
     current_time = time.time() # Get current time
     elapsed_time_global = current_time - start_time # Calculate how much time has passed since start
 
@@ -71,11 +85,15 @@ def time_tracker():  # function for tracking time
     time_entry.insert(0, time_display) # Insert the formatted time at the beginning
     if tracker_active: # If tracking is still active
         time_after_id = window.after(1000, time_tracker) # Schedule this function to run again in 1 second
-        if int(elapsed_time_global) % 5 == 0 and elapsed_time_global > 0:
-            points_entry.delete(0, tk.END)
-            points_entry.insert(0, points)
-            points = points + 0.5
+        current_block = int(elapsed_time_global) // 5
+        if current_block > last_block:
+            points += 5
+            last_block = current_block
+
+        points_entry.delete(0, tk.END)
+        points_entry.insert(0, points)
         return current_time # Return current time value
+    return None
 
 
 def pause_time():
@@ -98,7 +116,7 @@ def stop_tracker():
     create_csv()
     tracker_active = False # Set tracking flag to inactive (stops the timer)
     time_display = "0:00" # Reset the time in the entry to be "0:00
-    points = 0.0
+    points = 0
     if time_after_id:
         window.after_cancel(time_after_id) # Used global variable for stopping the time_tracker before next iteration
         time_entry.delete(0, tk.END)
@@ -167,6 +185,11 @@ active_program_label.pack(side=tk.LEFT)
 active_program_entry = tk.Entry(master=frm_active_program, width=20)  # Entry for active program (shows which program
 # is currently active
 active_program_entry.pack(side=tk.LEFT)
+
+total_points_label = tk.Label(master=frm_active_program, text=f'Total Points:')
+total_points_label.pack(side=tk.LEFT)
+total_points_label_entry = tk.Entry(master=frm_active_program, width=5)
+total_points_label_entry.pack(side=tk.LEFT)
 
 if __name__ == '__main__':
     update_program_name()
