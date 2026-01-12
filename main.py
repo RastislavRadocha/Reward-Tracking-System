@@ -34,7 +34,7 @@ start_time = 0 #  GLOBAL variable, used as a placeholder for further modificatio
 time_display = "0:00" # GLOBAL variable for resetting the time entry
 time_after_id = None # GLOBAL variable for saving .after id
 elapsed_time_global = 0
-points: int = 0
+points = 0
 last_block = 0
 last_program = ""
 
@@ -87,6 +87,12 @@ def start_time_tracking():
     time_tracker() # Begin the timer loop
 
 
+def calculate_points(points, last_block, current_block):
+    if current_block > last_block:
+        points +=5
+        last_block = current_block
+    return points, last_block
+
 
 def time_tracker():  # function for tracking time
     global time_display, time_after_id, elapsed_time_global, points, last_block
@@ -103,14 +109,19 @@ def time_tracker():  # function for tracking time
     if tracker_active: # If tracking is still active
         time_after_id = window.after(1000, time_tracker) # Schedule this function to run again in 1 second
         current_block = int(elapsed_time_global) // 5
-        if current_block > last_block:
-            points += 5
-            last_block = current_block
+        # Convert elapsed time into a discrete block index (used for point calculation)
+        new_points, new_block = calculate_points(points, last_block, current_block)
+        # Call the pure calculation function to determine updated points and block state
+        points = new_points
+        # Commit the newly calculated points to the global state
+        last_block = new_block
+        # Commit the newly calculated block marker so points are not awarded twice
 
         points_entry.delete(0, tk.END)
-        points_entry.insert(0, points)
+        points_entry.insert(0, new_points)
         return current_time # Return current time value
-    return None
+
+
 
 
 def pause_time():
