@@ -25,6 +25,7 @@
 - `def pause_time()` - Pause the timer
 - `def resume_time()` - Resume the timer from where it was paused
 - `def stop_tracker()` - Stop the timer and reset values
+- `def total_points_sum_csv` -  Calculates the total sum of all points from previous sessions
 
 
 **Key tkinter constants:**
