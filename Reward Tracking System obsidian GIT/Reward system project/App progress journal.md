@@ -1,3 +1,6 @@
+
+# Session 1
+
 After some time off this project, because i was studying AWS SAA, i had come back.
 Before i had create simple UI from [[Reward system#^8f0338|first subpoint of phase 1]] , after that i had created a implemented functions such as `def time_tracker(), def stop_tracker(), def update_program_name(), def program_tracker()`, the functionality is pretty self-explanatory, however, it was working, it was lacking a kind of basic sense to it, for example:
 - when i pressed the stop button, it did not reset the timer, it just stopped at that particular time, so basically it was paused
@@ -18,3 +21,7 @@ Also i have added a function to create a CSV files, and/or append existing data 
 
 # Session 3
 After another long break, hopefully the last one, i come back and started thinking now about the points system, how is it stored, how is it read and used. For now i was only creating and/or appending data to a csv file, which is good, but i need to know how many points i earned per session and how many points i have in total, and also i want the app to know how many points in total i have. So, after some time i had updated the create_csv() function and added total_points_sum_csv() function to calculate all the points from previos session into one column,i have also reworked the points adding system, i have changed it to time blocks, where each passed block will add the selected amounts of points, and then divide it by then so that in will add decimal points into the csv, and it will also show decimal points in the app, not 10.15615234 second and it will round it up incorrectly. The setup for now is that every 5 second i get 0,5 points and that is exactly what is being shown and saved.
+
+# Session 4
+
+Today i will try to refactor one function to use parameters and create a different file where the UI will live. I do not want to over-engineer every step so i will do it slowly one by one, day by day. For the refactoring i am going to create a new git-branch, to clearly see the changes that were made, and later i am going to merge them into the main one.
