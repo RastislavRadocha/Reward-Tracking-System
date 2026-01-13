@@ -25,3 +25,5 @@ After another long break, hopefully the last one, i come back and started thinki
 # Session 4
 
 Today i will try to refactor one function to use parameters and create a different file where the UI will live. I do not want to over-engineer every step so i will do it slowly one by one, day by day. For the refactoring i am going to create a new git-branch, to clearly see the changes that were made, and later i am going to merge them into the main one.
+- little update on the same topic, yesterday i refactored global variables `points, last_block`, to be used by a function which will calculate on which block the timer is, and how many points it should award.
+- today i moved the global variables into a dictionary, and successfully updated the rest of the code which were still using the old  non-existent global variables, to be now read and written from and to the dictionary itself.
