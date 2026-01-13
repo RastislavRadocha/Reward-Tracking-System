@@ -28,21 +28,21 @@ def update_program_name():  # function for updating the name in the TkInter wind
     window.after(1000, update_program_name)  # repeat the function and sending it to the Tk.Inter window every second
 
 
+state = {'Points': 0,
+         'Last Block': 0}
 
 tracker_active = False # global variable for the tracking mechanism, set to False initially
 start_time = 0 #  GLOBAL variable, used as a placeholder for further modification within function
 time_display = "0:00" # GLOBAL variable for resetting the time entry
 time_after_id = None # GLOBAL variable for saving .after id
 elapsed_time_global = 0
-points = 0
-last_block = 0
 last_program = ""
 
 """ Function for creating and/or appending new data into csv. file """
 def create_csv():
     elapsed_time_converted = int(elapsed_time_global) # converted floats to integers so that in CSV file it will look
                                                     # clean
-    points_rounded = points / 10
+    points_rounded = state['Points'] / 10
 
     total_points = total_points_sum_csv() + points_rounded
 
@@ -95,7 +95,7 @@ def calculate_points(points, last_block, current_block):
 
 
 def time_tracker():  # function for tracking time
-    global time_display, time_after_id, elapsed_time_global, points, last_block
+    global time_display, time_after_id, elapsed_time_global
     current_time = time.time() # Get current time
     elapsed_time_global = current_time - start_time # Calculate how much time has passed since start
 
@@ -108,13 +108,13 @@ def time_tracker():  # function for tracking time
     time_entry.insert(0, time_display) # Insert the formatted time at the beginning
     if tracker_active: # If tracking is still active
         time_after_id = window.after(1000, time_tracker) # Schedule this function to run again in 1 second
-        current_block = int(elapsed_time_global) // 5
+        current_block = int(elapsed_time_global) // 60
         # Convert elapsed time into a discrete block index (used for point calculation)
-        new_points, new_block = calculate_points(points, last_block, current_block)
+        new_points, new_block = calculate_points(state['Points'], state['Last Block'], current_block)
         # Call the pure calculation function to determine updated points and block state
-        points = new_points
+        state['Points'] = new_points
         # Commit the newly calculated points to the global state
-        last_block = new_block
+        state['Last Block'] = new_block
         # Commit the newly calculated block marker so points are not awarded twice
 
         points_entry.delete(0, tk.END)
