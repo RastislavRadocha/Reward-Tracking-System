@@ -20,10 +20,30 @@ Since i already have the **pause and resume** logic tied to this function as wel
 Also i have added a function to create a CSV files, and/or append existing data to it based on the last session. It has 3 columns `Time Elapsed, Total Points and Last App`, all of these are in a dictionary as keys, and the values are the respective values. However, now it tracks every program that is currently active, so that means whenever i press stop, i have to go the program itself, which will track itself, thus the last program tracked will always be the one i am writing. For the next session i have to implement a ignore check so that the app will be tracking itself, but other programs that are currently active.
 
 # Session 3
-After another long break, hopefully the last one, i come back and started thinking now about the points system, how is it stored, how is it read and used. For now i was only creating and/or appending data to a csv file, which is good, but i need to know how many points i earned per session and how many points i have in total, and also i want the app to know how many points in total i have. So, after some time i had updated the create_csv() function and added total_points_sum_csv() function to calculate all the points from previos session into one column,i have also reworked the points adding system, i have changed it to time blocks, where each passed block will add the selected amounts of points, and then divide it by then so that in will add decimal points into the csv, and it will also show decimal points in the app, not 10.15615234 second and it will round it up incorrectly. The setup for now is that every 5 second i get 0,5 points and that is exactly what is being shown and saved.
+After another long break, hopefully the last one, i come back and started thinking now about the points system, how is it stored, how is it read and used. For now i was only creating and/or appending data to a csv file, which is good, but i need to know how many points i earned per session and how many points i have in total, and also i want the app to know how many points in total i have. So, after some time i had updated the create_csv() function and added total_points_sum_csv() function to calculate all the points from previous session into one column,i have also reworked the points adding system, i have changed it to time blocks, where each passed block will add the selected amounts of points, and then divide it by then so that in will add decimal points into the csv, and it will also show decimal points in the app, not 10.15615234 second and it will round it up incorrectly. The setup for now is that every 5 second i get 0,5 points and that is exactly what is being shown and saved.
 
 # Session 4
 
 Today i will try to refactor one function to use parameters and create a different file where the UI will live. I do not want to over-engineer every step so i will do it slowly one by one, day by day. For the refactoring i am going to create a new git-branch, to clearly see the changes that were made, and later i am going to merge them into the main one.
 - little update on the same topic, yesterday i refactored global variables `points, last_block`, to be used by a function which will calculate on which block the timer is, and how many points it should award.
 - today i moved the global variables into a dictionary, and successfully updated the rest of the code which were still using the old  non-existent global variables, to be now read and written from and to the dictionary itself.
+- After moving and refactoring 2 global variables (`Points`, `Last Block`), and create a new pure function for calculations points only, i did the same thing with the calculation of time:
+```
+	- def calculate_elapsed_global(current_time: int, start_time: int):  
+    elapsed_time = current_time - start_time  
+    return elapsed_time
+    
+state = {'Points': 0,  
+         'Last Block': 0,  
+         'Elapsed Time': 0}
+         
+def time_tracker():  # function for tracking time  
+    global time_display, time_after_id  
+    current_time = time.time() # Get current time  
+    new_elapsed_time = calculate_elapsed_global(current_time, start_time)
+  
+    state['Elapsed Time'] = new_elapsed_time```
+
+```
+
+- 
