@@ -29,13 +29,13 @@ def update_program_name():  # function for updating the name in the TkInter wind
 
 
 state = {'Points': 0,
-         'Last Block': 0}
+         'Last Block': 0,
+         'Elapsed Time': 0}
 
 tracker_active = False # global variable for the tracking mechanism, set to False initially
 start_time = 0 #  GLOBAL variable, used as a placeholder for further modification within function
 time_display = "0:00" # GLOBAL variable for resetting the time entry
 time_after_id = None # GLOBAL variable for saving .after id
-elapsed_time_global = 0
 last_program = ""
 
 """ Function for creating and/or appending new data into csv. file """
@@ -87,20 +87,27 @@ def start_time_tracking():
     time_tracker() # Begin the timer loop
 
 
-def calculate_points(points, last_block, current_block):
+def calculate_points(points: int, last_block: int, current_block: int):
     if current_block > last_block:
         points +=5
         last_block = current_block
     return points, last_block
 
 
-def time_tracker():  # function for tracking time
-    global time_display, time_after_id, elapsed_time_global
-    current_time = time.time() # Get current time
-    elapsed_time_global = current_time - start_time # Calculate how much time has passed since start
+def calculate_elapsed_global(current_time: int, start_time: int):
+    elapsed_time = current_time - start_time
+    return elapsed_time
 
-    minutes = int(elapsed_time_global // 60) # Convert elapsed seconds to minutes
-    seconds = int(elapsed_time_global % 60) # Get remaining seconds after removing minutes
+
+def time_tracker():  # function for tracking time
+    global time_display, time_after_id
+    current_time = time.time() # Get current time
+    new_elapsed_time = calculate_elapsed_global(current_time, start_time) # Calculate how much time has passed since start
+
+    state['Elapsed Time'] = new_elapsed_time
+
+    minutes = int(state['Elapsed Time'] // 60) # Convert elapsed seconds to minutes
+    seconds = int(state['Elapsed Time'] % 60) # Get remaining seconds after removing minutes
 
     time_display = f'{minutes}:{seconds:02d}' # time_display = f'{minutes:02d}:{seconds:02d}' == show time as 00:00
 
@@ -108,7 +115,7 @@ def time_tracker():  # function for tracking time
     time_entry.insert(0, time_display) # Insert the formatted time at the beginning
     if tracker_active: # If tracking is still active
         time_after_id = window.after(1000, time_tracker) # Schedule this function to run again in 1 second
-        current_block = int(elapsed_time_global) // 60
+        current_block = int(state['Elapsed Time']) // 5
         # Convert elapsed time into a discrete block index (used for point calculation)
         new_points, new_block = calculate_points(state['Points'], state['Last Block'], current_block)
         # Call the pure calculation function to determine updated points and block state
@@ -118,7 +125,7 @@ def time_tracker():  # function for tracking time
         # Commit the newly calculated block marker so points are not awarded twice
 
         points_entry.delete(0, tk.END)
-        points_entry.insert(0, new_points)
+        points_entry.insert(0, (state['Points'] / 10))
         return current_time # Return current time value
 
 
