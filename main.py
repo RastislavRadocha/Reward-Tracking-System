@@ -82,10 +82,9 @@ def total_points_sum_csv():
 
 
 def start_time_tracking():
-    global tracker_active, start_time
+    global tracker_active
     tracker_active = True # Set tracking flag to active
-    start_time = time.time() # Record the current time as start time
-    state['Start Time'] = start_time
+    state['Start Time'] = time.time() # Record the current time as start time
     time_tracker() # Begin the timer loop
 
 
@@ -98,29 +97,18 @@ def calculate_points(points: int, last_block: int, current_block: int):
     return points, last_block
 
 
-def calculate_elapsed_global(current_time: int, start_time: int):
-    elapsed_time = current_time - start_time
+def calculate_elapsed_global(current_time: int):
+    elapsed_time = current_time - state['Start Time']
     return elapsed_time
 
 
 def time_tracker(): # function for tracking time
     global time_display, time_after_id
-    current_time = time.time() # Get current time
-    new_elapsed_time = calculate_elapsed_global(current_time, start_time) # Calculate how much time has passed since start
-
-    state['Elapsed Time'] = new_elapsed_time
-
-    minutes = int(state['Elapsed Time'] // 60) # Convert elapsed seconds to minutes
-    seconds = int(state['Elapsed Time'] % 60) # Get remaining seconds after removing minutes
-
-    time_display = f'{minutes}:{seconds:02d}' # time_display = f'{minutes:02d}:{seconds:02d}' == show time as 00:00
-
-    time_entry.delete(0, tk.END) # Clear the time display entry box
-    time_entry.insert(0, time_display) # Insert the formatted time at the beginning
     if tracker_active: # If tracking is still active
+        current_time = time.time()  # Get current time
         time_after_id = window.after(1000, time_tracker)  # Schedule this function to run again in 1 second
         if state['Start Time'] != 0:
-            state['Elapsed Time'] = calculate_elapsed_global(current_time, start_time) # Calculate how much time has
+            state['Elapsed Time'] = calculate_elapsed_global(current_time) # Calculate how much time has
                                                             # passed since the session started and store it in state
             current_block = int(state['Elapsed Time']) // 5 # Convert elapsed time into a discrete block index (used for point calculation)
             new_points, new_block = calculate_points(state['Points'], state['Last Block'], current_block)
@@ -129,6 +117,16 @@ def time_tracker(): # function for tracking time
             # Commit the newly calculated points to the global state
             state['Last Block'] = new_block
             # Commit the newly calculated block marker so points are not awarded twice
+
+            # Calculate how much time has passed since start
+
+            minutes = int(state['Elapsed Time'] // 60)  # Convert elapsed seconds to minutes
+            seconds = int(state['Elapsed Time'] % 60)  # Get remaining seconds after removing minutes
+
+            time_display = f'{minutes}:{seconds:02d}'  # time_display = f'{minutes:02d}:{seconds:02d}' == show time as 00:00
+
+            time_entry.delete(0, tk.END)  # Clear the time display entry box
+            time_entry.insert(0, time_display)  # Insert the formatted time at the beginning
 
         points_entry.delete(0, tk.END)
         points_entry.insert(0, (state['Points'] / 10))
