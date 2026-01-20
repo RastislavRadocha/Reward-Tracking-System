@@ -46,4 +46,26 @@ def time_tracker():  # function for tracking time
 
 ```
 
-- 
+
+# Session 4.5
+
+After last coding session, i have made more changes than intended, and i did not commit and push anything, so here i am going to list all changes that were made, and also commit this session with the software updates.
+- Moved variable `start_time` in to the `state{}` dictionary
+- Created `calculate_points(points, last_block, current_block)` function which takes care of modifying points on its own, instead of within `time_tracker()` function
+- Created `calculate_elapsed_global(current_time, start_time)` function and refactored the `start_time` variable
+- Moved `elapsed_time_global` variable into the `state{}` dictionary
+- Fixed bug where the CSV file logged values like 177861945614, which were causing by wrong time calculation.
+- Reordered logic inside `time_tracker()` function. 
+	1. Schedule next tick
+	2. Update elapsed time
+	3. Calculate block index
+	4. Calculate points
+	5. Update state
+	6. Update UI
+- Resume function was setting the `state['Start Time']` variable, instead of resuming the time from Start function.
+- Updated Pause function to store elapsed time into `state['Elapsed Time']`
+- Updated Resume function to recalculate resumed time from `state['Elapsed Time']` and writes it into `state['Start Time']`
+- `stop_tracker()` function now resets whole `state{}` dictionary
+- Fixed UI point display presentation. (was showing integers, now it's showing floats)
+
+- You refactored the app from “globals + mixed logic” into **state-driven, ordered, and guarded time + point tracking**, fixing async timing bugs and making Start, Pause, Resume, and Stop all behave correctly.
