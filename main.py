@@ -30,7 +30,8 @@ def update_program_name():  # function for updating the name in the TkInter wind
 
 state = {'Points': 0,
          'Last Block': 0,
-         'Elapsed Time': 0}
+         'Elapsed Time': 0,
+         'Start Time': 0}
 
 tracker_active = False # global variable for the tracking mechanism, set to False initially
 start_time = 0 #  GLOBAL variable, used as a placeholder for further modification within function
@@ -40,7 +41,7 @@ last_program = ""
 
 """ Function for creating and/or appending new data into csv. file """
 def create_csv():
-    elapsed_time_converted = int(elapsed_time_global) # converted floats to integers so that in CSV file it will look
+    elapsed_time_converted = int(state['Elapsed Time']) # converted floats to integers so that in CSV file it will look
                                                     # clean
     points_rounded = state['Points'] / 10
 
@@ -84,10 +85,13 @@ def start_time_tracking():
     global tracker_active, start_time
     tracker_active = True # Set tracking flag to active
     start_time = time.time() # Record the current time as start time
+    state['Start Time'] = start_time
     time_tracker() # Begin the timer loop
 
 
 def calculate_points(points: int, last_block: int, current_block: int):
+    # Calculates updated points based on time block progression
+    # Points are only added when a new block is reached
     if current_block > last_block:
         points +=5
         last_block = current_block
@@ -99,7 +103,7 @@ def calculate_elapsed_global(current_time: int, start_time: int):
     return elapsed_time
 
 
-def time_tracker():  # function for tracking time
+def time_tracker(): # function for tracking time
     global time_display, time_after_id
     current_time = time.time() # Get current time
     new_elapsed_time = calculate_elapsed_global(current_time, start_time) # Calculate how much time has passed since start
@@ -114,15 +118,17 @@ def time_tracker():  # function for tracking time
     time_entry.delete(0, tk.END) # Clear the time display entry box
     time_entry.insert(0, time_display) # Insert the formatted time at the beginning
     if tracker_active: # If tracking is still active
-        time_after_id = window.after(1000, time_tracker) # Schedule this function to run again in 1 second
-        current_block = int(state['Elapsed Time']) // 5
-        # Convert elapsed time into a discrete block index (used for point calculation)
-        new_points, new_block = calculate_points(state['Points'], state['Last Block'], current_block)
-        # Call the pure calculation function to determine updated points and block state
-        state['Points'] = new_points
-        # Commit the newly calculated points to the global state
-        state['Last Block'] = new_block
-        # Commit the newly calculated block marker so points are not awarded twice
+        time_after_id = window.after(1000, time_tracker)  # Schedule this function to run again in 1 second
+        if state['Start Time'] != 0:
+            state['Elapsed Time'] = calculate_elapsed_global(current_time, start_time) # Calculate how much time has
+                                                            # passed since the session started and store it in state
+            current_block = int(state['Elapsed Time']) // 5 # Convert elapsed time into a discrete block index (used for point calculation)
+            new_points, new_block = calculate_points(state['Points'], state['Last Block'], current_block)
+            # Call the pure calculation function to determine updated points and block state
+            state['Points'] = new_points
+            # Commit the newly calculated points to the global state
+            state['Last Block'] = new_block
+            # Commit the newly calculated block marker so points are not awarded twice
 
         points_entry.delete(0, tk.END)
         points_entry.insert(0, (state['Points'] / 10))
@@ -132,33 +138,35 @@ def time_tracker():  # function for tracking time
 
 
 def pause_time():
-    global tracker_active, time_after_id, elapsed_time_global, start_time
+    global tracker_active, time_after_id
     tracker_active = False
-    elapsed_time_global = time.time() - start_time
+    state['Elapsed Time']= time.time() - state['Start Time']
     window.after_cancel(time_after_id)
 
 def resume_time():
-    global tracker_active, start_time, elapsed_time_global
+    global tracker_active
     tracker_active = True
-    start_time = time.time() - elapsed_time_global
+    state['Start Time'] = time.time() - state['Elapsed Time']
     time_tracker()
 
 
 
 def stop_tracker():
-    global tracker_active, time_display, time_after_id, points, last_program, last_block # Declare global variable to modify it
+    global tracker_active, time_display, time_after_id, last_program # Declare global variable to modify it
     last_program = program_tracker()
     create_csv()
     tracker_active = False # Set tracking flag to inactive (stops the timer)
-    time_display = "0:00" # Reset the time in the entry to be "0:00
-    points = 0
-    last_block = 0
+    time_display = "0:00" # Reset the time in the entry to be 0:00
+    state['Points'] = 0
+    state['Last Block'] = 0
+    state['Elapsed Time'] = 0
+    state['Start Time'] = 0
     if time_after_id:
         window.after_cancel(time_after_id) # Used global variable for stopping the time_tracker before next iteration
         time_entry.delete(0, tk.END)
         time_entry.insert(0, time_display)
         points_entry.delete(0, tk.END)
-        points_entry.insert(0, points)
+        points_entry.insert(0, state['Points'])
 
     last_program = program_tracker()
     last_app_entry.delete(0, tk.END)
