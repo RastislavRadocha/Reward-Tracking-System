@@ -31,7 +31,8 @@ def update_program_name():  # function for updating the name in the TkInter wind
 state = {'Points': 0,
          'Last Block': 0,
          'Elapsed Time': 0,
-         'Start Time': 0}
+         'Start Time': 0,
+         'Tracking Active': False}
 
 tracker_active = False # global variable for the tracking mechanism, set to False initially
 time_display = "0:00" # GLOBAL variable for resetting the time entry
@@ -82,6 +83,7 @@ def total_points_sum_csv():
 
 def start_time_tracking():
     global tracker_active
+    state['Tracking Active'] = True
     tracker_active = True # Set tracking flag to active
     state['Start Time'] = time.time() # Record the current time as start time
     time_tracker() # Begin the timer loop
@@ -103,7 +105,7 @@ def calculate_elapsed_global(current_time: int):
 
 def time_tracker(): # function for tracking time
     global time_display, time_after_id
-    if tracker_active: # If tracking is still active
+    if state['Tracking Active']: # If tracking is still active
         current_time = time.time()  # Get current time
         time_after_id = window.after(1000, time_tracker)  # Schedule this function to run again in 1 second
         if state['Start Time'] != 0:
@@ -134,12 +136,14 @@ def time_tracker(): # function for tracking time
 
 def pause_time():
     global tracker_active, time_after_id
+    state['Tracking Active'] = False
     tracker_active = False
     state['Elapsed Time']= time.time() - state['Start Time']
     window.after_cancel(time_after_id)
 
 def resume_time():
     global tracker_active
+    state['Tracking Active'] = True
     tracker_active = True
     state['Start Time'] = time.time() - state['Elapsed Time']
     time_tracker()
@@ -151,6 +155,7 @@ def stop_tracker():
     last_program = program_tracker()
     create_csv()
     tracker_active = False # Set tracking flag to inactive (stops the timer)
+    state['Tracking Active'] = False
     time_display = "0:00" # Reset the time in the entry to be 0:00
     state['Points'] = 0
     state['Last Block'] = 0
