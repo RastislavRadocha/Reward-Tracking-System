@@ -34,7 +34,6 @@ state = {'Points': 0,
          'Start Time': 0}
 
 tracker_active = False # global variable for the tracking mechanism, set to False initially
-start_time = 0 #  GLOBAL variable, used as a placeholder for further modification within function
 time_display = "0:00" # GLOBAL variable for resetting the time entry
 time_after_id = None # GLOBAL variable for saving .after id
 last_program = ""
@@ -130,8 +129,6 @@ def time_tracker(): # function for tracking time
 
         points_entry.delete(0, tk.END)
         points_entry.insert(0, (state['Points'] / 10))
-        return current_time # Return current time value
-
 
 
 
