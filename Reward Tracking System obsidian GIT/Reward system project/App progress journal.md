@@ -70,3 +70,4 @@ After last coding session, i have made more changes than intended, and i did not
 
 - You refactored the app from “globals + mixed logic” into **state-driven, ordered, and guarded time + point tracking**, fixing async timing bugs and making Start, Pause, Resume, and Stop all behave correctly.
 - Last big change was to Clean the old `start_time` global usage and refactored `time_tracker()` so time and points are calculated once per tick, instead of multiple times, and updated after block calculation.
+- Deleted `start_time` global variable altogether.
