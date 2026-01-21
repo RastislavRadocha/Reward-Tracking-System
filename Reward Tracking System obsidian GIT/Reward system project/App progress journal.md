@@ -71,3 +71,7 @@ After last coding session, i have made more changes than intended, and i did not
 - You refactored the app from “globals + mixed logic” into **state-driven, ordered, and guarded time + point tracking**, fixing async timing bugs and making Start, Pause, Resume, and Stop all behave correctly.
 - Last big change was to Clean the old `start_time` global usage and refactored `time_tracker()` so time and points are calculated once per tick, instead of multiple times, and updated after block calculation.
 - Deleted `start_time` global variable altogether.
+
+# Session 5
+
+In this session i will be refactoring the tracker_active global variable. This variable is a simple boolean determining whether the application is on or off. The state is changing within the start/pause/resume/stop functions. For now, i simply created a new `key:value` in the `state{}` dictionary called `'Tracking Active'`, and without deleting, or removing the global variable from the functions yet, i have added one line to each function stating that this will be a new value for switching the state. 
