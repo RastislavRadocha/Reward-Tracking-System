@@ -75,3 +75,5 @@ After last coding session, i have made more changes than intended, and i did not
 # Session 5
 
 In this session i will be refactoring the tracker_active global variable. This variable is a simple boolean determining whether the application is on or off. The state is changing within the start/pause/resume/stop functions. For now, i simply created a new `key:value` in the `state{}` dictionary called `'Tracking Active'`, and without deleting, or removing the global variable from the functions yet, i have added one line to each function stating that this will be a new value for switching the state. 
+- Continuing from the last time, today i would like to remove the global variable `tracker_active` all-together, without changing the code's logic.
+- The global variable has been removed, and the program is working as expected.
