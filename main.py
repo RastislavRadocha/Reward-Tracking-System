@@ -34,7 +34,6 @@ state = {'Points': 0,
          'Start Time': 0,
          'Tracking Active': False}
 
-tracker_active = False # global variable for the tracking mechanism, set to False initially
 time_display = "0:00" # GLOBAL variable for resetting the time entry
 time_after_id = None # GLOBAL variable for saving .after id
 last_program = ""
@@ -82,9 +81,7 @@ def total_points_sum_csv():
 
 
 def start_time_tracking():
-    global tracker_active
-    state['Tracking Active'] = True
-    tracker_active = True # Set tracking flag to active
+    state['Tracking Active'] = True # Set tracking flag to active
     state['Start Time'] = time.time() # Record the current time as start time
     time_tracker() # Begin the timer loop
 
@@ -135,27 +132,23 @@ def time_tracker(): # function for tracking time
 
 
 def pause_time():
-    global tracker_active, time_after_id
+    global time_after_id
     state['Tracking Active'] = False
-    tracker_active = False
     state['Elapsed Time']= time.time() - state['Start Time']
     window.after_cancel(time_after_id)
 
 def resume_time():
-    global tracker_active
     state['Tracking Active'] = True
-    tracker_active = True
     state['Start Time'] = time.time() - state['Elapsed Time']
     time_tracker()
 
 
 
 def stop_tracker():
-    global tracker_active, time_display, time_after_id, last_program # Declare global variable to modify it
+    global time_display, time_after_id, last_program # Declare global variable to modify it
     last_program = program_tracker()
     create_csv()
-    tracker_active = False # Set tracking flag to inactive (stops the timer)
-    state['Tracking Active'] = False
+    state['Tracking Active'] = False # Set tracking flag to inactive (stops the timer)
     time_display = "0:00" # Reset the time in the entry to be 0:00
     state['Points'] = 0
     state['Last Block'] = 0
@@ -223,6 +216,12 @@ resume_log_button.pack(side=tk.LEFT, ipadx=10, padx=15)
 
 end_log_button = tk.Button(master=frm_buttons, text=buttons[1], command=stop_tracker)  # button for end logging time
 end_log_button.pack(side=tk.RIGHT, ipadx=10)
+
+frm_cloud_button = tk.Frame()
+frm_cloud_button.pack(fill=tk.X, ipadx=10, ipady=10)
+
+cloud_sync_button = tk.Button(master=frm_cloud_button, text="Cloud Sync")
+cloud_sync_button.pack(side=tk.LEFT, ipadx=5, ipady=3)
 
 frm_active_program = tk.Frame(relief=tk.SUNKEN, width=3)  # Frame for tracking active program
 frm_active_program.pack(fill=tk.X, ipadx=10, ipady=10)
