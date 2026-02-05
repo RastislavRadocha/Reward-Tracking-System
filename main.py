@@ -4,6 +4,7 @@ import tkinter as tk
 import time
 import pywinctl as pwc
 # import win32gui
+from cloud_sync import cloud_upload
 
 
 
@@ -169,6 +170,13 @@ def stop_tracker():
     total_points_label_entry.insert(0, total_points_entry)
 
 
+def cloud_sync_check():
+    if os.path.exists('Study Logs/tracking_log.csv'):
+        cloud_upload('Study Logs/tracking_log.csv', 's3-tracker-progress-bucket')
+        print('The file was uploaded successfully')
+    else:
+        print('The CSV does not exist')
+
 window = tk.Tk() # Create the main window
 window.title('Reward System') # Set the window title to 'Reward System'
 
@@ -220,7 +228,7 @@ end_log_button.pack(side=tk.RIGHT, ipadx=10)
 frm_cloud_button = tk.Frame()
 frm_cloud_button.pack(fill=tk.X, ipadx=10, ipady=10)
 
-cloud_sync_button = tk.Button(master=frm_cloud_button, text="Cloud Sync")
+cloud_sync_button = tk.Button(master=frm_cloud_button, text="Cloud Sync", command=cloud_sync_check)
 cloud_sync_button.pack(side=tk.LEFT, ipadx=5, ipady=3)
 
 frm_active_program = tk.Frame(relief=tk.SUNKEN, width=3)  # Frame for tracking active program
