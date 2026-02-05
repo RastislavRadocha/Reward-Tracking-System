@@ -34,3 +34,7 @@
 - `0` - Represents the very beginning position in a text widget
 
 The magic happens in that `after()` function - it's what makes your program keep checking and updating instead of just checking once and stopping!
+
+**Cloud Functions**
+
+- `def cloud_upload(file_name, bucket, object_name=None)` - function for uploading csv file to S3 bucket
