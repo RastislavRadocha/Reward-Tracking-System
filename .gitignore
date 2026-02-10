@@ -43,9 +43,6 @@ ENV/
 ehthumbs.db
 Thumbs.db
 
-# Obsidian
-.obsidian/
-*.tmp
 
 # Log files
 *.log
@@ -72,6 +69,9 @@ secrets.txt
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Project runtime data
+/Study Logs/
 
 # Project specific (add your own)
 .obsidian/
