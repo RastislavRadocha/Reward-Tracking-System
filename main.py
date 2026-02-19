@@ -1,10 +1,20 @@
 import csv
+import datetime
 import os.path
 import tkinter as tk
 import time
 import pywinctl as pwc
+import os
+from datetime import datetime, timezone
+
+import requests
+
+from cloud_sync import cloud_sync
+
+API_URL = os.getenv("API_URL")
+API_KEY = os.getenv("API_KEY")
+
 # import win32gui
-# from cloud_sync import cloud_sync
 
 
 def program_tracker():
@@ -37,6 +47,7 @@ state = {'Points': 0,
 time_display = "0:00" # GLOBAL variable for resetting the time entry
 time_after_id = None # GLOBAL variable for saving .after id
 last_program = ""
+last_session_data = None
 
 """ Function for creating and/or appending new data into csv. file """
 def create_csv():
@@ -145,8 +156,15 @@ def resume_time():
 
 
 def stop_tracker():
-    global time_display, time_after_id, last_program # Declare global variable to modify it
+    global time_display, time_after_id, last_program, last_session_data # Declare global variable to modify it
     last_program = program_tracker()
+    if state['Elapsed Time'] == 0:
+        return
+    last_session_data = {"user_id": "rastislav",
+                         "timestamp": datetime.now(timezone.utc).isoformat(),
+                         "duration_seconds": int(state['Elapsed Time']),
+                         "points": round(state['Points'] /10, 2),
+                         "app_name": last_program}
     create_csv()
     state['Tracking Active'] = False # Set tracking flag to inactive (stops the timer)
     time_display = "0:00" # Reset the time in the entry to be 0:00
@@ -161,20 +179,43 @@ def stop_tracker():
         points_entry.delete(0, tk.END)
         points_entry.insert(0, state['Points'])
 
-    last_program = program_tracker()
     last_app_entry.delete(0, tk.END)
     last_app_entry.insert(0, last_program)
     total_points_entry = total_points_sum_csv()
     total_points_label_entry.delete(0, tk.END)
     total_points_label_entry.insert(0, total_points_entry)
 
+    return last_session_data
 
 def cloud_sync_check():
     if os.path.exists('Study Logs/tracking_log.csv'):
-        cloud_sync('Study Logs/tracking_log.csv', api_url=, api_key=)
+        cloud_sync('Study Logs/tracking_log.csv', api_url=API_URL, api_key=API_KEY)
         print('The file was uploaded successfully')
     else:
         print('The CSV does not exist')
+
+def store_session_dynamodb(session_data):
+    if session_data is None:
+        print("Snapshot empty, nothing to store")
+        return
+    try:
+        headers = {"x-api-key": API_KEY}
+        response = requests.post(f"{API_URL}/session", json=session_data, headers=headers, timeout=10)
+        if response.status_code == 200:
+            print(f"Session stored successfully (status={response.status_code})")
+            return True
+        else:
+            print("Response:", response.text)
+            return False
+    except Exception as e:
+        print("Request failed", e)
+        return False
+
+def handle_storing_click():
+    global last_session_data
+    if store_session_dynamodb(last_session_data):
+        last_session_data = None
+
 
 window = tk.Tk() # Create the main window
 window.title('Reward System') # Set the window title to 'Reward System'
@@ -230,6 +271,9 @@ frm_cloud_button.pack(fill=tk.X, ipadx=10, ipady=10)
 cloud_sync_button = tk.Button(master=frm_cloud_button, text="Cloud Sync",
                               command=cloud_sync_check)
 cloud_sync_button.pack(side=tk.LEFT, ipadx=5, ipady=3)
+store_dynamodb_button = tk.Button(master=frm_cloud_button, text='Store DynamoDB',
+                                   command=handle_storing_click)
+store_dynamodb_button.pack(side=tk.RIGHT, ipadx=5, ipady=3)
 
 frm_active_program = tk.Frame(relief=tk.SUNKEN, width=3)  # Frame for tracking active program
 frm_active_program.pack(fill=tk.X, ipadx=10, ipady=10)
