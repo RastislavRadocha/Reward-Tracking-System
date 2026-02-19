@@ -50,3 +50,17 @@ Changes:
 		- created a small python script to test the functionality using `requests` and `os` libraries
 		- and successfully confirmed data insertion via **DynamoDB** console
 - Next session will be to refactor both AWS Lambda and Local application code to reduce technical debt and clarify the architecture more.
+
+### 19.02.2026
+- Today session was first about cleaning the `AWS Lambda Code` to make it look like a professional assessment and make it more readable, and also storing the actual data from the local app variables into `DynamoDB` using the API Gateway and new functions within the local app. The DynamoDB accepts JSON format, so i have to create a dictionary in the `stop_tracker()` function to store the data in JSON format, created a guard checks to either exit function immediately if the conditions were or were not `True`, created a print statements for Success of Failed operations. 
+- The logic in AWS Lambda is separated into `handle_s3_upload()` and `handle_dynamodb_insert()` and its based route-handling using `event["route"]`
+- The pipeline was extended to support structured session storage in DynamoDB via POST/session
+- The local app was modified to create the JSON compatible dictionary as stated above
+- Implemented Guard Clause:
+	- Prevents creating session when `Elapsed Time == 0`
+	- Avoids inserting invalid sessions into DynamoDB
+- The storing of data is being done manually through separate button from the local app
+- Implemented response handling:
+	- `True` returned on successful event
+	- `False` returned on failure
+	- Print statements added for success/failure visibility
