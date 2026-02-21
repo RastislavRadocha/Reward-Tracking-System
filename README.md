@@ -1,12 +1,6 @@
-Here’s a clear and concise `README.md` description for your **Tracking/Reward System** project:
-
----
-
 # 🏆 Tracking & Reward System
 
 A desktop productivity tool built with **Python** and **Tkinter** that tracks which application is currently active on your screen and rewards you with points based on the time spent in approved (productive) programs.
-
----
 
 ## 💡 Features
 
