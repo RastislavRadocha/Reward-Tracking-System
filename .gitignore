@@ -76,5 +76,7 @@ htmlcov/
 # Project specific (add your own)
 .obsidian/
 *.tmp
+Study Logs/
+*.csv
 # Project specific
 Reward Tracking System obsidian GIT/Reward system project/Things to copy-paste.md
