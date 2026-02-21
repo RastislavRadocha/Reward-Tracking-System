@@ -1,6 +1,7 @@
 import os
 import requests
 
+
 def cloud_sync(csv_path: str, api_url: str, api_key: str):
     # 1. Check file exists
     if not os.path.exists(csv_path):
@@ -9,9 +10,9 @@ def cloud_sync(csv_path: str, api_url: str, api_key: str):
     # 2. Send file to API
     with open(csv_path, "rb") as f:
         response = requests.post(
-            api_url,
+            f"{api_url}/sync",
             headers={
-                "x-api-key": api_key
+                "x-api-key": api_url
             },
             files={
                 "file": f
