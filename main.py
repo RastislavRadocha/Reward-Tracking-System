@@ -6,6 +6,8 @@ import time
 import pywinctl as pwc
 import os
 from datetime import datetime, timezone
+from storage_csv import create_csv, total_points_sum_csv
+from tracking_core import calculate_points, calculate_elapsed_global, business_logic
 
 import requests
 
@@ -15,7 +17,6 @@ API_URL = os.getenv("API_URL")
 API_KEY = os.getenv("API_KEY")
 
 # import win32gui
-
 
 def program_tracker():
     current_program = pwc.getActiveWindow()
@@ -37,7 +38,6 @@ def update_program_name():  # function for updating the name in the TkInter wind
     active_program_entry.insert(0, active_program)  # reinsert the name of the program
     window.after(1000, update_program_name)  # repeat the function and sending it to the Tk.Inter window every second
 
-
 state = {'Points': 0,
          'Last Block': 0,
          'Elapsed Time': 0,
@@ -49,47 +49,6 @@ time_after_id = None # GLOBAL variable for saving .after id
 last_program = ""
 last_session_data = None
 
-""" Function for creating and/or appending new data into csv. file """
-def create_csv():
-    elapsed_time_converted = int(state['Elapsed Time']) # converted floats to integers so that in CSV file it will look
-                                                    # clean
-    points_rounded = state['Points'] / 10
-
-    total_points = total_points_sum_csv() + points_rounded
-
-    csv_columns = {'Time Elapsed': elapsed_time_converted,
-                   'Points per session': points_rounded,
-                   'Last App': last_program,
-                   'Total points': total_points}
-
-    if not os.path.exists('Study Logs'):
-        os.makedirs('Study Logs')
-    if os.path.exists('Study Logs/tracking_log.csv'):
-        with open('Study Logs/tracking_log.csv', mode='a') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=list(csv_columns.keys()))
-            writer.writerow(csv_columns)
-    else:
-        with open('Study Logs/tracking_log.csv', mode='w') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=list(csv_columns.keys()))
-            writer.writeheader()
-            writer.writerow(csv_columns)
-
-def total_points_sum_csv():
-    total = 0.0
-
-    if not os.path.exists('Study Logs/tracking_log.csv'):
-        return 0.0
-    with open('Study Logs/tracking_log.csv', mode='r', newline='') as csvfile:
-        reader = csv.DictReader(csvfile)
-
-        for row in reader:
-            try:
-                total += float(row['Points per session'])
-            except(KeyError, ValueError):
-                continue
-
-    return total
-
 
 def start_time_tracking():
     state['Tracking Active'] = True # Set tracking flag to active
@@ -97,45 +56,23 @@ def start_time_tracking():
     time_tracker() # Begin the timer loop
 
 
-def calculate_points(points: int, last_block: int, current_block: int):
-    # Calculates updated points based on time block progression
-    # Points are only added when a new block is reached
-    if current_block > last_block:
-        points +=5
-        last_block = current_block
-    return points, last_block
-
-
-def calculate_elapsed_global(current_time: int):
-    elapsed_time = current_time - state['Start Time']
-    return elapsed_time
-
-
 def time_tracker(): # function for tracking time
-    global time_display, time_after_id
+    global time_after_id
     if state['Tracking Active']: # If tracking is still active
         current_time = time.time()  # Get current time
         time_after_id = window.after(1000, time_tracker)  # Schedule this function to run again in 1 second
-        if state['Start Time'] != 0:
-            state['Elapsed Time'] = calculate_elapsed_global(current_time) # Calculate how much time has
-                                                            # passed since the session started and store it in state
-            current_block = int(state['Elapsed Time']) // 5 # Convert elapsed time into a discrete block index (used for point calculation)
-            new_points, new_block = calculate_points(state['Points'], state['Last Block'], current_block)
-            # Call the pure calculation function to determine updated points and block state
-            state['Points'] = new_points
-            # Commit the newly calculated points to the global state
-            state['Last Block'] = new_block
-            # Commit the newly calculated block marker so points are not awarded twice
+        elapsed_time, new_points, new_block, formatted_time = business_logic(state['Start Time'],
+                       current_time,
+                       state['Points'],
+                       state['Last Block'])
 
-            # Calculate how much time has passed since start
+        state['Elapsed Time'] = elapsed_time
+        state['Points'] = new_points
+        state['Last Block'] = new_block
 
-            minutes = int(state['Elapsed Time'] // 60)  # Convert elapsed seconds to minutes
-            seconds = int(state['Elapsed Time'] % 60)  # Get remaining seconds after removing minutes
 
-            time_display = f'{minutes}:{seconds:02d}'  # time_display = f'{minutes:02d}:{seconds:02d}' == show time as 00:00
-
-            time_entry.delete(0, tk.END)  # Clear the time display entry box
-            time_entry.insert(0, time_display)  # Insert the formatted time at the beginning
+        time_entry.delete(0, tk.END)  # Clear the time display entry box
+        time_entry.insert(0, formatted_time)  # Insert the formatted time at the beginning
 
         points_entry.delete(0, tk.END)
         points_entry.insert(0, (state['Points'] / 10))
@@ -165,7 +102,7 @@ def stop_tracker():
                          "duration_seconds": int(state['Elapsed Time']),
                          "points": round(state['Points'] /10, 2),
                          "app_name": last_program}
-    create_csv()
+    create_csv(state['Elapsed Time'], state['Points'], last_program)
     state['Tracking Active'] = False # Set tracking flag to inactive (stops the timer)
     time_display = "0:00" # Reset the time in the entry to be 0:00
     state['Points'] = 0
