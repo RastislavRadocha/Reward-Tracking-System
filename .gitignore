@@ -71,7 +71,8 @@ secrets.txt
 htmlcov/
 
 # Project runtime data
-/Study Logs/
+.idea/
+Study Logs/
 
 # Project specific (add your own)
 .obsidian/
