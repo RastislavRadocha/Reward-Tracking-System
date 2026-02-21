@@ -43,10 +43,6 @@ ENV/
 ehthumbs.db
 Thumbs.db
 
-# Obsidian
-.obsidian/
-*.tmp
-
 # Log files
 *.log
 
@@ -77,6 +73,3 @@ htmlcov/
 .obsidian/
 *.tmp
 Study Logs/
-*.csv
-# Project specific
-Reward Tracking System obsidian GIT/Reward system project/Things to copy-paste.md
