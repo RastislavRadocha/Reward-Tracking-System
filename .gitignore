@@ -71,6 +71,7 @@ secrets.txt
 htmlcov/
 
 # Project runtime data
+.idea/
 /Study Logs/
 
 # Project specific (add your own)
