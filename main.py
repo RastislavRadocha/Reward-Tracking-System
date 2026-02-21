@@ -6,6 +6,7 @@ import time
 import pywinctl as pwc
 import os
 from datetime import datetime, timezone
+from cloud_sync import cloud_sync_check, store_session_dynamodb
 from storage_csv import create_csv, total_points_sum_csv
 from tracking_core import calculate_points, calculate_elapsed_global, business_logic
 
@@ -124,33 +125,10 @@ def stop_tracker():
 
     return last_session_data
 
-def cloud_sync_check():
-    if os.path.exists('Study Logs/tracking_log.csv'):
-        cloud_sync('Study Logs/tracking_log.csv', api_url=API_URL, api_key=API_KEY)
-        print('The file was uploaded successfully')
-    else:
-        print('The CSV does not exist')
-
-def store_session_dynamodb(session_data):
-    if session_data is None:
-        print("Snapshot empty, nothing to store")
-        return
-    try:
-        headers = {"x-api-key": API_KEY}
-        response = requests.post(f"{API_URL}/session", json=session_data, headers=headers, timeout=10)
-        if response.status_code == 200:
-            print(f"Session stored successfully (status={response.status_code})")
-            return True
-        else:
-            print("Response:", response.text)
-            return False
-    except Exception as e:
-        print("Request failed", e)
-        return False
 
 def handle_storing_click():
     global last_session_data
-    if store_session_dynamodb(last_session_data):
+    if store_session_dynamodb(last_session_data, api_url, api_key):
         last_session_data = None
 
 
