@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from storage_csv import create_csv, total_points_sum_csv
 from tracking_core import calculate_points, calculate_elapsed_global, business_logic
 from cloud_sync import store_session_dynamodb, cloud_sync_check
+import tracking_state
 
 import requests
 
