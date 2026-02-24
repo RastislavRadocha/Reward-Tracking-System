@@ -45,9 +45,10 @@ def stop_tracker(user_id, last_program):
 
 def update_tracking_tick(state, current_time):
     elapsed_time, new_points, new_block, formatted_time = business_logic(state['Start Time'],
+                                                                         current_time,
                                                                          state['Points'],
                                                                          state['Last Block'],
-                                                                         current_time)
+                                                                        )
 
     state['Elapsed Time'] = elapsed_time
     state['Points'] = new_points
