@@ -6,19 +6,22 @@ import time
 import pywinctl as pwc
 import os
 from datetime import datetime, timezone
-from storage_csv import create_csv, total_points_sum_csv
-from tracking_core import calculate_points, calculate_elapsed_global, business_logic
+
+import tracker_controller
+from storage_csv import total_points_sum_csv
+from tracking_core import business_logic
 from cloud_sync import store_session_dynamodb, cloud_sync_check
 import tracking_state
 
 import requests
 
-from cloud_sync import cloud_sync
+# import win32gui
 
+# stale variables
+CURRENT_USER_ID = "rastislav"
 API_URL = os.getenv("API_URL")
 API_KEY = os.getenv("API_KEY")
 
-# import win32gui
 
 def program_tracker():
     current_program = pwc.getActiveWindow()
@@ -41,30 +44,24 @@ def update_program_name():  # function for updating the name in the TkInter wind
     window.after(1000, update_program_name)  # repeat the function and sending it to the Tk.Inter window every second
 
 
+# state = {'Points': 0,
+#          'Last Block': 0,
+#          'Elapsed Time': 0,
+#          'Start Time': 0,
+#          'Tracking Active': False}
 
 last_program = ""
 
 
-
-def start_time_tracking():
-    tracking_state.state['Tracking Active'] = True # Set tracking flag to active
-    tracking_state.state['Start Time'] = time.time() # Record the current time as start time
-    time_tracker() # Begin the timer loop
+# last_session_data = None
 
 
-def time_tracker(): # function for tracking time
-    if tracking_state.state['Tracking Active']: # If tracking is still active
+def time_tracker():  # function for tracking time
+    if tracking_state.state['Tracking Active']:  # If tracking is still active
         current_time = time.time()  # Get current time
-        tracking_state.time_after_id = window.after(1000, time_tracker)  # Schedule this function to run again in 1 second
-        elapsed_time, new_points, new_block, formatted_time = business_logic(tracking_state.state['Start Time'],
-                       current_time,
-                       tracking_state.state['Points'],
-                       tracking_state.state['Last Block'])
-
-        tracking_state.state['Elapsed Time'] = elapsed_time
-        tracking_state.state['Points'] = new_points
-        tracking_state.state['Last Block'] = new_block
-
+        tracking_state.time_after_id = window.after(1000,
+                                                    time_tracker)  # Schedule this function to run again in 1 second
+        formatted_time = tracker_controller.update_tracking_tick(tracking_state.state, current_time)
 
         time_entry.delete(0, tk.END)  # Clear the time display entry box
         time_entry.insert(0, formatted_time)  # Insert the formatted time at the beginning
@@ -73,69 +70,69 @@ def time_tracker(): # function for tracking time
         points_entry.insert(0, (tracking_state.state['Points'] / 10))
 
 
-
-def pause_time():
-    tracking_state.state['Tracking Active'] = False
-    tracking_state.state['Elapsed Time']= time.time() - tracking_state.state['Start Time']
-    window.after_cancel(tracking_state.time_after_id)
-
-def resume_time():
-    tracking_state.state['Tracking Active'] = True
-    tracking_state.state['Start Time'] = time.time() - tracking_state.state['Elapsed Time']
-    time_tracker()
-
-
-
-def stop_tracker():
-    global last_program # Declare global variable to modify it
-    last_program = program_tracker()
-    if tracking_state.state['Elapsed Time'] == 0:
-        return
-    last_session_data = {"user_id": "rastislav",
-                         "timestamp": datetime.now(timezone.utc).isoformat(),
-                         "duration_seconds": int(tracking_state.state['Elapsed Time']),
-                         "points": round(tracking_state.state['Points'] /10, 2),
-                         "app_name": last_program}
-    create_csv(tracking_state.state['Elapsed Time'], tracking_state.state['Points'], last_program)
-    tracking_state.state['Tracking Active'] = False # Set tracking flag to inactive (stops the timer)
-    time_display = "0:00" # Reset the time in the entry to be 0:00
-    tracking_state.state['Points'] = 0
-    tracking_state.state['Last Block'] = 0
-    tracking_state.state['Elapsed Time'] = 0
-    tracking_state.state['Start Time'] = 0
+def ui_cleanup(last_program, stop_format_time):
     if tracking_state.time_after_id:
-        window.after_cancel(tracking_state.time_after_id) # Used global variable for stopping the time_tracker before next iteration
+        window.after_cancel(
+            tracking_state.time_after_id)  # Used global variable for stopping the time_tracker before next iteration
         time_entry.delete(0, tk.END)
-        time_entry.insert(0, time_display)
+        time_entry.insert(0, stop_format_time)
         points_entry.delete(0, tk.END)
         points_entry.insert(0, tracking_state.state['Points'])
 
-    last_app_entry.delete(0, tk.END)
-    last_app_entry.insert(0, last_program)
-    total_points_entry = total_points_sum_csv()
-    total_points_label_entry.delete(0, tk.END)
-    total_points_label_entry.insert(0, total_points_entry)
+        last_app_entry.delete(0, tk.END)
+        last_app_entry.insert(0, last_program)
+        total_points_entry = total_points_sum_csv()
+        total_points_label_entry.delete(0, tk.END)
+        total_points_label_entry.insert(0, total_points_entry)
 
-    return last_session_data
+    return last_program
 
 
 def handle_storing_click():
-    global last_session_data
-    if store_session_dynamodb(last_session_data, api_key=API_KEY, api_url=API_URL):
-        last_session_data = None
+    if store_session_dynamodb(tracking_state.last_session_data, api_key=API_KEY, api_url=API_URL):
+        tracking_state.last_session_data = None
 
 
-window = tk.Tk() # Create the main window
-window.title('Reward System') # Set the window title to 'Reward System'
+window = tk.Tk()  # Create the main window
+window.title('Reward System')  # Set the window title to 'Reward System'
 
-frm_form = tk.Frame(relief=tk.SUNKEN, borderwidth=3) # Create a frame with sunken border effect and 3-pixel border width
-frm_form.pack() # Pack the frame into the window
+
+def handle_start():
+    tracker_controller.start_time_tracking()
+    time_tracker()
+
+
+def handle_pause():
+    tracker_controller.pause_time()
+    if tracking_state.time_after_id:
+        window.after_cancel(tracking_state.time_after_id)
+
+
+def handle_resume():
+    tracker_controller.resume_time()
+    time_tracker()
+
+
+def handle_stop():
+    last_program = program_tracker()
+    session = tracker_controller.stop_tracker(CURRENT_USER_ID, last_program)
+
+    if tracking_state.time_after_id:
+        window.after_cancel(tracking_state.time_after_id)
+
+    if session:
+        stop_format_time = "0:00"
+        ui_cleanup(last_program, stop_format_time)
+
+
+frm_form = tk.Frame(relief=tk.SUNKEN,
+                    borderwidth=3)  # Create a frame with sunken border effect and 3-pixel border width
+frm_form.pack()  # Pack the frame into the window
 
 labels = ['Time Elapsed:',
           'Total Points:',
           'Last App:',
           ]
-
 
 # for idx, text in enumerate(labels):  #loop for the labels variable
 time_label = tk.Label(master=frm_form, text=labels[0])  #Creating the labels from labels variable
@@ -161,16 +158,16 @@ buttons = ['Start log',
 frm_buttons = tk.Frame()  # Frame for buttons
 frm_buttons.pack(fill=tk.X, ipadx=10, ipady=10)
 
-start_log_button = tk.Button(master=frm_buttons, text=buttons[0], command=start_time_tracking)  # button for start logging time
+start_log_button = tk.Button(master=frm_buttons, text=buttons[0], command=handle_start)  # button for start logging time
 start_log_button.pack(side=tk.LEFT, ipadx=10)
 
-pause_log_button = tk.Button(master=frm_buttons, text=buttons[2], command=pause_time) # pause the time
+pause_log_button = tk.Button(master=frm_buttons, text=buttons[2], command=handle_pause)  # pause the time
 pause_log_button.pack(side=tk.LEFT, ipadx=10, padx=15)
 
-resume_log_button = tk.Button(master=frm_buttons, text=buttons[3], command=resume_time) # resume the count
+resume_log_button = tk.Button(master=frm_buttons, text=buttons[3], command=handle_resume)  # resume the count
 resume_log_button.pack(side=tk.LEFT, ipadx=10, padx=15)
 
-end_log_button = tk.Button(master=frm_buttons, text=buttons[1], command=stop_tracker)  # button for end logging time
+end_log_button = tk.Button(master=frm_buttons, text=buttons[1], command=handle_stop)  # button for end logging time
 end_log_button.pack(side=tk.RIGHT, ipadx=10)
 
 frm_cloud_button = tk.Frame()
@@ -179,8 +176,9 @@ frm_cloud_button.pack(fill=tk.X, ipadx=10, ipady=10)
 cloud_sync_button = tk.Button(master=frm_cloud_button, text="Cloud Sync",
                               command=cloud_sync_check)
 cloud_sync_button.pack(side=tk.LEFT, ipadx=5, ipady=3)
+
 store_dynamodb_button = tk.Button(master=frm_cloud_button, text='Store DynamoDB',
-                                   command=handle_storing_click)
+                                  command=handle_storing_click)
 store_dynamodb_button.pack(side=tk.RIGHT, ipadx=5, ipady=3)
 
 frm_active_program = tk.Frame(relief=tk.SUNKEN, width=3)  # Frame for tracking active program
