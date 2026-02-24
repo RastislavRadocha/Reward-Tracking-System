@@ -40,83 +40,75 @@ def update_program_name():  # function for updating the name in the TkInter wind
     active_program_entry.insert(0, active_program)  # reinsert the name of the program
     window.after(1000, update_program_name)  # repeat the function and sending it to the Tk.Inter window every second
 
-state = {'Points': 0,
-         'Last Block': 0,
-         'Elapsed Time': 0,
-         'Start Time': 0,
-         'Tracking Active': False}
 
-time_display = "0:00" # GLOBAL variable for resetting the time entry
-time_after_id = None # GLOBAL variable for saving .after id
+
 last_program = ""
-last_session_data = None
+
 
 
 def start_time_tracking():
-    state['Tracking Active'] = True # Set tracking flag to active
-    state['Start Time'] = time.time() # Record the current time as start time
+    tracking_state.state['Tracking Active'] = True # Set tracking flag to active
+    tracking_state.state['Start Time'] = time.time() # Record the current time as start time
     time_tracker() # Begin the timer loop
 
 
 def time_tracker(): # function for tracking time
-    global time_after_id
-    if state['Tracking Active']: # If tracking is still active
+    if tracking_state.state['Tracking Active']: # If tracking is still active
         current_time = time.time()  # Get current time
-        time_after_id = window.after(1000, time_tracker)  # Schedule this function to run again in 1 second
-        elapsed_time, new_points, new_block, formatted_time = business_logic(state['Start Time'],
+        tracking_state.time_after_id = window.after(1000, time_tracker)  # Schedule this function to run again in 1 second
+        elapsed_time, new_points, new_block, formatted_time = business_logic(tracking_state.state['Start Time'],
                        current_time,
-                       state['Points'],
-                       state['Last Block'])
+                       tracking_state.state['Points'],
+                       tracking_state.state['Last Block'])
 
-        state['Elapsed Time'] = elapsed_time
-        state['Points'] = new_points
-        state['Last Block'] = new_block
+        tracking_state.state['Elapsed Time'] = elapsed_time
+        tracking_state.state['Points'] = new_points
+        tracking_state.state['Last Block'] = new_block
 
 
         time_entry.delete(0, tk.END)  # Clear the time display entry box
         time_entry.insert(0, formatted_time)  # Insert the formatted time at the beginning
 
         points_entry.delete(0, tk.END)
-        points_entry.insert(0, (state['Points'] / 10))
+        points_entry.insert(0, (tracking_state.state['Points'] / 10))
 
 
 
 def pause_time():
-    global time_after_id
-    state['Tracking Active'] = False
-    state['Elapsed Time']= time.time() - state['Start Time']
-    window.after_cancel(time_after_id)
+    tracking_state.state['Tracking Active'] = False
+    tracking_state.state['Elapsed Time']= time.time() - tracking_state.state['Start Time']
+    window.after_cancel(tracking_state.time_after_id)
 
 def resume_time():
-    state['Tracking Active'] = True
-    state['Start Time'] = time.time() - state['Elapsed Time']
+    tracking_state.state['Tracking Active'] = True
+    tracking_state.state['Start Time'] = time.time() - tracking_state.state['Elapsed Time']
     time_tracker()
 
 
 
 def stop_tracker():
-    global time_display, time_after_id, last_program, last_session_data # Declare global variable to modify it
+    global last_program # Declare global variable to modify it
     last_program = program_tracker()
-    if state['Elapsed Time'] == 0:
+    if tracking_state.state['Elapsed Time'] == 0:
         return
     last_session_data = {"user_id": "rastislav",
                          "timestamp": datetime.now(timezone.utc).isoformat(),
-                         "duration_seconds": int(state['Elapsed Time']),
-                         "points": round(state['Points'] /10, 2),
+                         "duration_seconds": int(tracking_state.state['Elapsed Time']),
+                         "points": round(tracking_state.state['Points'] /10, 2),
                          "app_name": last_program}
-    create_csv(state['Elapsed Time'], state['Points'], last_program)
-    state['Tracking Active'] = False # Set tracking flag to inactive (stops the timer)
+    create_csv(tracking_state.state['Elapsed Time'], tracking_state.state['Points'], last_program)
+    tracking_state.state['Tracking Active'] = False # Set tracking flag to inactive (stops the timer)
     time_display = "0:00" # Reset the time in the entry to be 0:00
-    state['Points'] = 0
-    state['Last Block'] = 0
-    state['Elapsed Time'] = 0
-    state['Start Time'] = 0
-    if time_after_id:
-        window.after_cancel(time_after_id) # Used global variable for stopping the time_tracker before next iteration
+    tracking_state.state['Points'] = 0
+    tracking_state.state['Last Block'] = 0
+    tracking_state.state['Elapsed Time'] = 0
+    tracking_state.state['Start Time'] = 0
+    if tracking_state.time_after_id:
+        window.after_cancel(tracking_state.time_after_id) # Used global variable for stopping the time_tracker before next iteration
         time_entry.delete(0, tk.END)
         time_entry.insert(0, time_display)
         points_entry.delete(0, tk.END)
-        points_entry.insert(0, state['Points'])
+        points_entry.insert(0, tracking_state.state['Points'])
 
     last_app_entry.delete(0, tk.END)
     last_app_entry.insert(0, last_program)
